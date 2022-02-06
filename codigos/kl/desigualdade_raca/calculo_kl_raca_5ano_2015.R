@@ -16,7 +16,7 @@ dados_tudo<-dados_tudo[ID_MUNICIPIO<6000000]
 # Raca
 # Dados simulados
 # MAT
-load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_9ano_mat_2017.Rdata"))
+load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_5ano_mat_2015.Rdata"))
 
 dados_simulados = data.table()
 for(i in 1:length(amostras_simuladas)){
@@ -28,12 +28,12 @@ for(i in 1:length(amostras_simuladas)){
   
 }
 
-dados_mat9 = rbind(dados_tudo[(Ano %in% c(2013,2015,2017)) & ID_SERIE==9,
+dados_mat5 = rbind(dados_tudo[(Ano %in% c(2011,2013,2015)) & ID_SERIE==5,
                               c('ID_MUNICIPIO','Matematica','Raça')],
                    dados_simulados)
 
 #LP
-load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_9ano_lp_2017.Rdata"))
+load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_5ano_lp_2015.Rdata"))
 
 dados_simulados = data.table()
 for(i in 1:length(amostras_simuladas)){
@@ -45,7 +45,7 @@ for(i in 1:length(amostras_simuladas)){
   
 }
 
-dados_lp9 = rbind(dados_tudo[(Ano %in% c(2013,2015,2017)) & ID_SERIE==9,
+dados_lp5 = rbind(dados_tudo[(Ano %in% c(2011,2013,2015)) & ID_SERIE==5,
                               c('ID_MUNICIPIO','Leitura','Raça')],
                    dados_simulados)
 
@@ -64,21 +64,21 @@ calculaKL = function(proficiencia, referencia){
 }
 
 # Calcula KL
-desigualdade_raca_nono_ano_mat = dados_mat9[,.(Desigualdade.Matematica=calculaKL(Matematica[Raça=='Preto'],
+desigualdade_raca_quinto_ano_mat = dados_mat5[,.(Desigualdade.Matematica=calculaKL(Matematica[Raça=='Preto'],
                                                                                  Matematica[Raça=='Branco']),
                                                nmatematica_preto=length(na.omit(Matematica[Raça=='Preto'])),
                                                nmatematica_branco=length(na.omit(Matematica[Raça=='Branco']))),
                                             by=ID_MUNICIPIO]
 
-desigualdade_raca_nono_ano_lp = dados_lp9[,.(Desigualdade.Leitura=calculaKL(Leitura[Raça=='Preto'],
+desigualdade_raca_quinto_ano_lp = dados_lp5[,.(Desigualdade.Leitura=calculaKL(Leitura[Raça=='Preto'],
                                                                             Leitura[Raça=='Branco']),
                                              nleitura_preto=length(na.omit(Leitura[Raça=='Preto'])),
                                              nleitura_branco=length(na.omit(Leitura[Raça=='Branco']))),
                                           by=ID_MUNICIPIO]
 
-desigualdade_raca_nono_ano_mat = desigualdade_raca_nono_ano_mat[ID_MUNICIPIO<6000000]
-desigualdade_raca_nono_ano_lp = desigualdade_raca_nono_ano_lp[ID_MUNICIPIO<6000000]
+desigualdade_raca_quinto_ano_mat = desigualdade_raca_quinto_ano_mat[ID_MUNICIPIO<6000000]
+desigualdade_raca_quinto_ano_lp = desigualdade_raca_quinto_ano_lp[ID_MUNICIPIO<6000000]
 
 # Salva resultado
-save(desigualdade_raca_nono_ano_lp,desigualdade_raca_nono_ano_mat,
-     file = paste0(path, '/dados/kl/desigualdade_raca/kl_raca_9ano_2017.Rdata'))
+save(desigualdade_raca_quinto_ano_lp,desigualdade_raca_quinto_ano_mat,
+     file = paste0(path, '/dados/kl/desigualdade_raca/kl_raca_5ano_2015.Rdata'))

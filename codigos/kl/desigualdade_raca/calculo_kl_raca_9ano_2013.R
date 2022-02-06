@@ -16,7 +16,7 @@ dados_tudo<-dados_tudo[ID_MUNICIPIO<6000000]
 # Raca
 # Dados simulados
 # MAT
-load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_9ano_mat_2017.Rdata"))
+load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_9ano_mat_2013.Rdata"))
 
 dados_simulados = data.table()
 for(i in 1:length(amostras_simuladas)){
@@ -28,12 +28,12 @@ for(i in 1:length(amostras_simuladas)){
   
 }
 
-dados_mat9 = rbind(dados_tudo[(Ano %in% c(2013,2015,2017)) & ID_SERIE==9,
+dados_mat9 = rbind(dados_tudo[(Ano %in% c(2009,2011,2013)) & ID_SERIE==9,
                               c('ID_MUNICIPIO','Matematica','Raça')],
                    dados_simulados)
 
 #LP
-load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_9ano_lp_2017.Rdata"))
+load(paste0(path, "/dados/simulacao/desigualdade_raca/simulacao_raca_9ano_lp_2013.Rdata"))
 
 dados_simulados = data.table()
 for(i in 1:length(amostras_simuladas)){
@@ -45,7 +45,7 @@ for(i in 1:length(amostras_simuladas)){
   
 }
 
-dados_lp9 = rbind(dados_tudo[(Ano %in% c(2013,2015,2017)) & ID_SERIE==9,
+dados_lp9 = rbind(dados_tudo[(Ano %in% c(2009,2011,2013)) & ID_SERIE==9,
                               c('ID_MUNICIPIO','Leitura','Raça')],
                    dados_simulados)
 
@@ -81,4 +81,4 @@ desigualdade_raca_nono_ano_lp = desigualdade_raca_nono_ano_lp[ID_MUNICIPIO<60000
 
 # Salva resultado
 save(desigualdade_raca_nono_ano_lp,desigualdade_raca_nono_ano_mat,
-     file = paste0(path, '/dados/kl/desigualdade_raca/kl_raca_9ano_2017.Rdata'))
+     file = paste0(path, '/dados/kl/desigualdade_raca/kl_raca_9ano_2013.Rdata'))
