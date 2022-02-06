@@ -1,104 +1,73 @@
+rm(list=ls(all=T))
+
+## Pacotes
 require(data.table)
 library(reldist)
-library(foreign)
-require(magrittr)
-require(sfsmisc) # para as integrais
-require(reshape2)
-## 2013 a 2017
+require(sfsmisc)
 
+## Base de dados
+wd = getwd()
+path = dirname(dirname(dirname(wd)))
+load(paste0(path,"/dados/raw/DadosProvaBrasil_2007_2017.Rdata"))
 
+colnames(dados_tudo)[4]<-'ID_MUNICIPIO'
+dados_tudo<-dados_tudo[ID_MUNICIPIO<6000000]
 
+# Dados simulados
+# MAT
+load(paste0(path, "/dados/simulacao/nivel/simulacao_nivel_5ano_mat_2015.Rdata"))
 
+tamanho_amostras = sapply(amostras_simuladas35,length)
+dados_simulados = data.table(ID_MUNICIPIO = rep(codigos_municipios,tamanho_amostras),
+                             Matematica = unlist(amostras_simuladas35))
 
-## Dados Prova Brasil NSE
-
-
-load("C:/Users/Erica/Dropbox/UFOP/Grupo NAVE/Trabalho Chico Soare/Atualizacao_2017/Modelo Imputacao/dados_tudo.Rdata")
-
-
-
-# Carrega dados imputados
-
-#Matematica
-load("C:/Users/Erica/Dropbox/UFOP/Grupo NAVE/Trabalho Chico Soare/Atualizacao_2017/Modelo Imputacao/Dados Imputados/Dados/2011-2015/imputacao_nivel_32_resultado_MAT5.Rdata")
-
-dados_tudo
-amostras_simuladas35[[1]]
-
-dados_aux<-data.table(COD_MUNICIPIO=codigos_municipios[1],Matematica=amostras_simuladas35[[1]])
-
-tamanho_amostras<-sapply(amostras_simuladas35,length)
-
-dados_simulados<-data.table(COD_MUNICIPIO=rep(codigos_municipios,tamanho_amostras),
-Matematica=unlist(amostras_simuladas35))
-
-
-dados_simulados[COD_MUNICIPIO==1100908]
-length(amostras_simuladas35[[1]])
-
-dados_mat_5ano<-rbind(dados_tudo[(Ano %in% c(2011,2013,2015)) & ID_SERIE==5,c('COD_MUNICIPIO','Matematica')],
-                      dados_simulados)
-
+dados_mat5 = rbind(dados_tudo[Ano %in% c(2011,2013,2015) & ID_SERIE==5,
+                              c('ID_MUNICIPIO','Matematica')],
+                   dados_simulados)
 
 #LP
-load("C:/Users/Erica/Dropbox/UFOP/Grupo NAVE/Trabalho Chico Soare/Atualizacao_2017/Modelo Imputacao/Dados Imputados/Dados/2011-2015/imputacao_nivel_32_resultado_LP5.Rdata")
+load(paste0(path, "/dados/simulacao/nivel/simulacao_nivel_5ano_lp_2015.Rdata"))
 
-tamanho_amostras<-sapply(amostras_simuladas35,length)
+tamanho_amostras = sapply(amostras_simuladas35,length)
+dados_simulados = data.table(ID_MUNICIPIO = rep(codigos_municipios,tamanho_amostras),
+                             Leitura = unlist(amostras_simuladas35))
 
-dados_simulados<-data.table(COD_MUNICIPIO=rep(codigos_municipios,tamanho_amostras),
-                            Leitura=unlist(amostras_simuladas35))
-
-
-dados_simulados[COD_MUNICIPIO==1100908]
-length(amostras_simuladas35[[1]])
-
-dados_lp_5ano<-rbind(dados_tudo[(Ano %in% c(2011,2013,2015)) & ID_SERIE==5,c('COD_MUNICIPIO','Leitura')],
-                      dados_simulados)
+dados_lp5 = rbind(dados_tudo[Ano %in% c(2011,2013,2015) & ID_SERIE==5,
+                             c('ID_MUNICIPIO','Leitura')],
+                  dados_simulados)
 
 
-
-## Funcao que calcula a KL
-calculaKL<- function(Leitura,referencia){ 
-  if( sum(!is.na(Leitura))>0 & sum(!is.na(referencia))>0){  # Retira aquele que nao tem informacao
-    distribuicao_relativa<-reldist(y= referencia, yo=na.omit(Leitura),  graph=FALSE)
-    cdfgr <- cumsum(distribuicao_relativa$y)/sum(distribuicao_relativa$y)
-    area=integrate.xy(distribuicao_relativa$x,cdfgr)-.5
-    return("Kl"=sign(area)*distribuicao_relativa$entropy)}
+# Define funcao que calcula a KL
+calculaKL = function(proficiencia, referencia){
+  
+  if( sum(!is.na(proficiencia))>0 & sum(!is.na(referencia))>0){  
+    
+    distribuicao_relativa = reldist(y=referencia, yo=na.omit(proficiencia), graph=FALSE)
+    cdfgr = cumsum(distribuicao_relativa$y)/sum(distribuicao_relativa$y)
+    area = integrate.xy(distribuicao_relativa$x,cdfgr)-.5
+    
+    return("Kl"=sign(area)*distribuicao_relativa$entropy)
+  }
 }
 
-## Usando a referencia do Victor
-load("C:/Users/Erica/Dropbox/UFOP/Grupo NAVE/Trabalho Chico Soare/Atualizacao_2017/Modelo Imputacao/Dados Imputados/Dados/Referencias_victor.RData")
+# Distribuicao de referencia
+load(paste0(path, "/dados/kl/nivel/dist_referencia.Rdata"))
 
+amostras_referencia = data.table(
+  Leitura5 = Referencia.Leitura.Quinto,
+  Leitura9 = Referencia.Leitura.Nono,
+  Matematica5 = Referencia.Matematica.Quinto,
+  Matematica9 = Referencia.Matematica.Nono)
 
-amostras_referencia<-data.table(
-  Leitura5=Referencia.Leitura.Quinto)
-amostras_referencia$Leitura9<-Referencia.Leitura.Nono
-amostras_referencia$Matematica5<-Referencia.Matematica.Quinto
-amostras_referencia$Matematica9<-Referencia.Matematica.Nono
+# Calcula KL
+kl_quinto_ano_mat = dados_mat5[,.(KL.Matematica = calculaKL(Matematica,amostras_referencia$Matematica5),
+                                  nmatematica=length(na.omit(Matematica))),
+                               by=ID_MUNICIPIO]
 
-
-## QUINTO
-kl_quinto_ano_mat<-dados_mat_5ano[,.(KL.Matematica=
-                                          calculaKL(Matematica,amostras_referencia$Matematica5),
-                                        nmatematica=length(na.omit(Matematica))
-                                     ),
-                          by=COD_MUNICIPIO]
-
-kl_quinto_ano_lp<-dados_lp_5ano[,.(KL.Leitura=
-                                       calculaKL(Leitura,amostras_referencia$Leitura5),
-                                     nmatematica=length(na.omit(Leitura))
-),
-by=COD_MUNICIPIO]
-
-
-
-
+kl_quinto_ano_lp = dados_lp5[,.(KL.Leitura = calculaKL(Leitura,amostras_referencia$Leitura5),
+                                nleitura=length(na.omit(Leitura))),
+                             by=ID_MUNICIPIO]
 
 # Salva resultado
-
-setwd('C:\\Users\\Erica\\Dropbox\\UFOP\\Grupo NAVE\\Trabalho Chico Soare\\Atualizacao_2017\\Modelo Imputacao\\Dados Imputados\\Resultados KL')
-
-
-save(kl_quinto_ano_lp,kl_quinto_ano_mat,file='KL_Quinto_ano_2011_2015.Rdata')
-
-
+save(kl_quinto_ano_lp,kl_quinto_ano_mat,
+     file = paste0(path, '/dados/kl/nivel/kl_nivel_5ano_2015.Rdata'))

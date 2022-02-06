@@ -65,7 +65,7 @@ kl_nono_ano_mat = dados_mat9[,.(KL.Matematica = calculaKL(Matematica,amostras_re
                              by=ID_MUNICIPIO]
 
 kl_nono_ano_lp = dados_lp9[,.(KL.Leitura = calculaKL(Leitura,amostras_referencia$Leitura9),
-                              nmatematica=length(na.omit(Leitura))),
+                              nleitura=length(na.omit(Leitura))),
                            by=ID_MUNICIPIO]
 
 # Salva resultado
